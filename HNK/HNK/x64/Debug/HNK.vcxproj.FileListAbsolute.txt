@@ -1,0 +1,4 @@
+D:\Projects\HNK\HNK\x64\Debug\HNK.vcxproj.AssemblyReference.cache
+D:\Projects\HNK\HNK\x64\Debug\HNK.vcxproj.SuggestedBindingRedirects.cache
+D:\Projects\HNK\HNK\x64\Debug\HNK.MyForm.resources
+D:\Projects\HNK\HNK\x64\Debug\HNK.vcxproj.GenerateResource.cache

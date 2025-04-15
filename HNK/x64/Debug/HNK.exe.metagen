@@ -1,0 +1,44 @@
+  HNK.MyForm.resources - Embedded, ContainedInManifestFile, 
+ImageRuntimeVersion: v4.0.30319
+Assembly HNK, Version=0.0.*, Culture=Invariant Language (Invariant Country): 
+	hash=SHA1, flags=PublicKey
+Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a: 
+	hash=None, flags=None
+Assembly System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
+	hash=None, flags=None
+Class GameLogic: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    PieceType[] board : Public
+    Turn currentTurn : Public
+    Int32 BoardSize = 5 : Public, Static, Literal, HasDefault
+  Methods:
+    Index(Int32, Int32): PrivateScope, Public, HideBySig
+    InBounds(Int32, Int32): PrivateScope, Public, HideBySig
+    MoveGreenShield(Int32, Int32, Int32&(Out)): PrivateScope, Public, HideBySig
+    MoveRedShield(Int32, Int32, Int32&(Out)): PrivateScope, Public, HideBySig
+    PassTurn(): PrivateScope, Public, HideBySig
+Struct PieceType: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    PieceType Empty = 0 : Public, Static, Literal, HasDefault
+    PieceType GreenShield = 1 : Public, Static, Literal, HasDefault
+    PieceType RedShield = 2 : Public, Static, Literal, HasDefault
+Struct Turn: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
+  :System.Enum
+  Fields:
+    Int32 value__ : Public, SpecialName, RTSpecialName
+    Turn Red = 0 : Public, Static, Literal, HasDefault
+    Turn Green = 1 : Public, Static, Literal, HasDefault
+Class HNK.MyForm: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+  :System.Windows.Forms.Form
+    Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
