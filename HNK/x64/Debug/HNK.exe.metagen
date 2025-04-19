@@ -14,6 +14,24 @@ Assembly System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=
 	hash=None, flags=None
 Assembly System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089: 
 	hash=None, flags=None
+Struct Move: AutoLayout, AnsiClass, Class, Public, SequentialLayout, Sealed, BeforeFieldInit
+  :System.ValueType
+    Void .ctor(Int32, Int32, Int32, Int32): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    Int32 fromCol : Public
+    Int32 fromRow : Public
+    Int32 toCol : Public
+    Int32 toRow : Public
+  Methods:
+    ToString(): PrivateScope, Public, Final, Virtual, HideBySig
+Class GameState: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
+    Void .ctor(PieceType[], Turn): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+    Void .ctor(GameState): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
+  Fields:
+    PieceType[] board : Public
+    Turn currentTurn : Public
+  Methods:
+    Equals(GameState): PrivateScope, Public, HideBySig
 Class GameLogic: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Fields:
@@ -26,6 +44,19 @@ Class GameLogic: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     MoveGreenShield(Int32, Int32, Int32&(Out)): PrivateScope, Public, HideBySig
     MoveRedShield(Int32, Int32, Int32&(Out)): PrivateScope, Public, HideBySig
     PassTurn(): PrivateScope, Public, HideBySig
+    HasPlayerWon(Turn): PrivateScope, Public, HideBySig
+    GetPossibleMoves(): PrivateScope, Public, HideBySig
+    ApplyMove(Move): PrivateScope, Public, HideBySig
+    ApplyMove(GameState, Move): PrivateScope, Public, HideBySig
+    GetCurrentState(): PrivateScope, Public, HideBySig
+    IsWinningState(GameState): PrivateScope, Public, HideBySig
+    IsLosingState(GameState): PrivateScope, Public, HideBySig
+    FindBestMove(): PrivateScope, Public, HideBySig
+    IsGoodMove(GameState, Move): PrivateScope, Public, HideBySig
+    IsGameStateGood(GameState): PrivateScope, Public, HideBySig
+    IsGameStateBad(GameState): PrivateScope, Public, HideBySig
+    GetGoodMoves(): PrivateScope, Public, HideBySig
+    RecommendMove(): PrivateScope, Public, HideBySig
 Struct PieceType: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
   :System.Enum
   Fields:

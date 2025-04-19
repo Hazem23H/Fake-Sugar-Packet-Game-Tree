@@ -4,6 +4,7 @@
 #using <System.Windows.Forms.dll>
 
 #include "GameLogic.h"
+#include "Stack.h"
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -36,7 +37,9 @@ namespace HNK {
         literal String^ RedShieldImagePath = L"D:\\Projects\\HNK\\Red.png";
 
         TableLayoutPanel^ tableLayoutPanel;
-        Button^ passTurnButton;  // Button will be in the bottom-right cell.
+        Button^ passTurnButton;      // Button will be in the bottom-right cell.
+        Button^ recommendButton;     // Button to recommend the next move
+        TextBox^ infoTextBox;        // TextBox to display move recommendations
         System::ComponentModel::IContainer^ components;
 
         // Dictionaries to track which PictureBox is in which grid cell.
@@ -50,11 +53,13 @@ namespace HNK {
         void InitializeComponent(void) {
             this->components = gcnew System::ComponentModel::Container();
             this->tableLayoutPanel = gcnew TableLayoutPanel();
+            this->infoTextBox = gcnew TextBox();
+            this->recommendButton = gcnew Button();
             this->SuspendLayout();
 
             // Form settings.
-            this->ClientSize = Drawing::Size(400, 400);
-            this->Text = L"Grid GUI";
+            this->ClientSize = Drawing::Size(600, 500);
+            this->Text = L"Game Tree Demo";
 
             // Create a 5×5 grid.
             this->tableLayoutPanel->ColumnCount = 5;
@@ -65,7 +70,8 @@ namespace HNK {
             for (int i = 0; i < 5; i++) {
                 this->tableLayoutPanel->RowStyles->Add(gcnew RowStyle(SizeType::Percent, 20));
             }
-            this->tableLayoutPanel->Dock = DockStyle::Fill;
+            this->tableLayoutPanel->Dock = DockStyle::Top;
+            this->tableLayoutPanel->Height = 400;
 
             // Populate the grid with controls.
             for (int r = 0; r < 5; r++) {
@@ -128,7 +134,24 @@ namespace HNK {
                 }
             }
 
+            // Setup recommendation button
+            this->recommendButton->Location = Point(20, 420);
+            this->recommendButton->Size = Drawing::Size(150, 30);
+            this->recommendButton->Text = "Recommend Move";
+            this->recommendButton->Click += gcnew EventHandler(this, &MyForm::OnRecommendClick);
+
+            // Setup info text box
+            this->infoTextBox->Location = Point(180, 420);
+            this->infoTextBox->Size = Drawing::Size(400, 60);
+            this->infoTextBox->Multiline = true;
+            this->infoTextBox->ReadOnly = true;
+            this->infoTextBox->ScrollBars = ScrollBars::Vertical;
+
+            // Add controls to form
             this->Controls->Add(this->tableLayoutPanel);
+            this->Controls->Add(this->recommendButton);
+            this->Controls->Add(this->infoTextBox);
+
             this->ResumeLayout(false);
         }
 
@@ -163,6 +186,12 @@ namespace HNK {
 
                 // Update the dictionary to record the new cell.
                 greenShieldUI[shield] = Point(pos.X, newRow);
+
+                // Update info text
+                infoTextBox->Text = "Green shield moved from (" + pos.X + "," + pos.Y + ") to (" + pos.X + "," + newRow + ")";
+
+                // Check if any player has won
+                CheckWinCondition();
             }
         }
 
@@ -195,14 +224,46 @@ namespace HNK {
                 tableLayoutPanel->Controls->Remove(shield);
                 tableLayoutPanel->Controls->Add(shield, newCol, pos.Y);
 
-                // Update the shield’s tracked position.
+                // Update the shield's tracked position.
                 redShieldUI[shield] = Point(newCol, pos.Y);
+
+                // Update info text
+                infoTextBox->Text = "Red shield moved from (" + pos.X + "," + pos.Y + ") to (" + newCol + "," + pos.Y + ")";
+
+                // Check if any player has won
+                CheckWinCondition();
             }
         }
 
         // Event handler for the Pass Turn button.
         void OnPassTurnClick(Object^ sender, EventArgs^ e) {
             gameLogic->PassTurn();
+            infoTextBox->Text = "Turn passed. " +
+                ((gameLogic->currentTurn == Turn::Red) ? "Red" : "Green") +
+                "'s turn now.";
+        }
+
+        // Event handler for the Recommend Move button
+        void OnRecommendClick(Object^ sender, EventArgs^ e) {
+            try {
+                String^ recommendation = gameLogic->RecommendMove();
+                infoTextBox->Text = recommendation;
+            }
+            catch (Exception^ ex) {
+                infoTextBox->Text = "Error finding recommendation: " + ex->Message;
+            }
+        }
+
+        // Check if any player has won
+        void CheckWinCondition() {
+            if (gameLogic->HasPlayerWon(Turn::Red)) {
+                MessageBox::Show("Red player has won the game!", "Game Over",
+                    MessageBoxButtons::OK, MessageBoxIcon::Information);
+            }
+            else if (gameLogic->HasPlayerWon(Turn::Green)) {
+                MessageBox::Show("Green player has won the game!", "Game Over",
+                    MessageBoxButtons::OK, MessageBoxIcon::Information);
+            }
         }
     };
 }
