@@ -6,3 +6,7 @@ D:\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\x64\Debug\HNK.vcxproj.AssemblyRefe
 D:\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\x64\Debug\HNK.vcxproj.SuggestedBindingRedirects.cache
 D:\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\x64\Debug\HNK.MyForm.resources
 D:\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\x64\Debug\HNK.vcxproj.GenerateResource.cache
+C:\Users\kanzy\Documents\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\x64\Debug\HNK.vcxproj.AssemblyReference.cache
+C:\Users\kanzy\Documents\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\x64\Debug\HNK.vcxproj.SuggestedBindingRedirects.cache
+C:\Users\kanzy\Documents\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\x64\Debug\HNK.MyForm.resources
+C:\Users\kanzy\Documents\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\x64\Debug\HNK.vcxproj.GenerateResource.cache

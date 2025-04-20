@@ -1,7 +1,1 @@
-﻿  main.cpp
-D:\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\GameLogic.h(435,27): warning C4101: 'ex': unreferenced local variable
-  MyForm.cpp
-D:\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\HNK\GameLogic.h(435,27): warning C4101: 'ex': unreferenced local variable
-  Generating Code...
-  GameLogic.obj : MSIL module encountered; incremental linking is disabled for MSIL; performing full link
-  HNK.vcxproj -> D:\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\x64\Debug\HNK.exe
+﻿  HNK.vcxproj -> C:\Users\kanzy\Documents\GitHub\Fake-Sugar-Packet-Game-Tree\HNK\x64\Debug\HNK.exe

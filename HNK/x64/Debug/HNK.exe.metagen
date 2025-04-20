@@ -30,8 +30,6 @@ Class GameState: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
   Fields:
     PieceType[] board : Public
     Turn currentTurn : Public
-  Methods:
-    Equals(GameState): PrivateScope, Public, HideBySig
 Class GameLogic: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Fields:
@@ -41,6 +39,7 @@ Class GameLogic: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
   Methods:
     Index(Int32, Int32): PrivateScope, Public, HideBySig
     InBounds(Int32, Int32): PrivateScope, Public, HideBySig
+    SwitchTurn(): PrivateScope, Public, HideBySig
     MoveGreenShield(Int32, Int32, Int32&(Out)): PrivateScope, Public, HideBySig
     MoveRedShield(Int32, Int32, Int32&(Out)): PrivateScope, Public, HideBySig
     PassTurn(): PrivateScope, Public, HideBySig
@@ -52,10 +51,6 @@ Class GameLogic: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     IsWinningState(GameState): PrivateScope, Public, HideBySig
     IsLosingState(GameState): PrivateScope, Public, HideBySig
     FindBestMove(): PrivateScope, Public, HideBySig
-    IsGoodMove(GameState, Move): PrivateScope, Public, HideBySig
-    IsGameStateGood(GameState): PrivateScope, Public, HideBySig
-    IsGameStateBad(GameState): PrivateScope, Public, HideBySig
-    GetGoodMoves(): PrivateScope, Public, HideBySig
     RecommendMove(): PrivateScope, Public, HideBySig
 Struct PieceType: AutoLayout, AnsiClass, Class, Public, Sealed, BeforeFieldInit
   :System.Enum
