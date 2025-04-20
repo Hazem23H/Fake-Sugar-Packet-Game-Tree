@@ -52,6 +52,9 @@ namespace HNK {
         // Timer for AI move
         Timer^ aiTimer;
 
+        // Game over flag
+        bool gameOver;
+
         // Initialize the UI components.
         void InitializeComponent(void) {
             this->components = gcnew System::ComponentModel::Container();
@@ -59,6 +62,7 @@ namespace HNK {
             this->infoTextBox = gcnew TextBox();
             this->recommendButton = gcnew Button();
             this->aiTimer = gcnew Timer(this->components);
+            this->gameOver = false;
             this->SuspendLayout();
 
             // Form settings.
@@ -165,7 +169,7 @@ namespace HNK {
         // Timer tick event for AI move
         void OnAITimerTick(Object^ sender, EventArgs^ e) {
             aiTimer->Stop();
-            if (gameLogic->currentTurn == Turn::Green) {
+            if (gameLogic->currentTurn == Turn::Green && !gameOver) {
                 MakeGreenAIMove();
             }
         }
@@ -195,6 +199,9 @@ namespace HNK {
                     Point pos = pair->Value;
                     int newRow;
 
+                    // Skip shields that are already at the bottom row
+                    if (pos.Y == 4) continue;
+
                     // Try to move this shield
                     if (gameLogic->MoveGreenShield(pos.X, pos.Y, newRow)) {
                         // Remove shield from old position
@@ -222,6 +229,10 @@ namespace HNK {
                         infoTextBox->Text = "Green AI moved from (" + pos.X + "," + pos.Y + ") to (" + pos.X + "," + newRow.ToString() + ")";
 
                         madeMoveSuccessfully = true;
+
+                        // Check for win after moving
+                        CheckWinCondition();
+
                         break;  // We made one move, that's enough
                     }
                 }
@@ -231,9 +242,6 @@ namespace HNK {
                     infoTextBox->Text = "AI could not find a valid move. Passing turn.";
                     gameLogic->PassTurn();
                 }
-
-                // Check for win condition
-                CheckWinCondition();
             }
             catch (Exception^ ex) {
                 infoTextBox->Text = "AI error: " + ex->Message;
@@ -243,11 +251,17 @@ namespace HNK {
 
         // Event handler for red shield clicks.
         void OnRedShieldClick(Object^ sender, EventArgs^ e) {
+            if (gameOver) return;  // Prevent moves after game is over
+
             PictureBox^ shield = dynamic_cast<PictureBox^>(sender);
             if (shield == nullptr || !redShieldUI->ContainsKey(shield))
                 return;
 
             Point pos = redShieldUI[shield];
+
+            // Skip if this shield is already at right edge
+            if (pos.X == 4) return;
+
             int newCol;
             if (gameLogic->MoveRedShield(pos.X, pos.Y, newCol)) {
                 // Remove control from the old cell.
@@ -276,11 +290,11 @@ namespace HNK {
                 // Update info text
                 infoTextBox->Text = "Red shield moved from (" + pos.X + "," + pos.Y + ") to (" + newCol + "," + pos.Y + ")";
 
-                // Check if any player has won
+                // Check for win condition after every move
                 CheckWinCondition();
 
-                // After Red's move, trigger the AI move for Green
-                if (gameLogic->currentTurn == Turn::Green) {
+                // After Red's move, trigger the AI move for Green (if game is still ongoing)
+                if (gameLogic->currentTurn == Turn::Green && !gameOver) {
                     // Start timer for AI move
                     aiTimer->Start();
                 }
@@ -289,6 +303,8 @@ namespace HNK {
 
         // Event handler for the Pass Turn button.
         void OnPassTurnClick(Object^ sender, EventArgs^ e) {
+            if (gameOver) return;  // Prevent pass turn after game is over
+
             gameLogic->PassTurn();
             infoTextBox->Text = "Turn passed. " +
                 ((gameLogic->currentTurn == Turn::Red) ? "Red" : "Green") +
@@ -302,6 +318,11 @@ namespace HNK {
 
         // Event handler for the Recommend Move button
         void OnRecommendClick(Object^ sender, EventArgs^ e) {
+            if (gameOver) {
+                infoTextBox->Text = "Game is over. No more moves available.";
+                return;
+            }
+
             try {
                 String^ recommendation = gameLogic->RecommendMove();
                 infoTextBox->Text = recommendation;
@@ -311,16 +332,66 @@ namespace HNK {
             }
         }
 
+        // Count how many shields have reached their destination
+        int CountShieldsAtDestination(Dictionary<PictureBox^, Point>^ shieldDict, bool isRed) {
+            int count = 0;
+            for each (KeyValuePair<PictureBox^, Point> ^ pair in shieldDict) {
+                Point pos = pair->Value;
+                if ((isRed && pos.X == 4) || (!isRed && pos.Y == 4)) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
         // Check if any player has won
         void CheckWinCondition() {
-            if (gameLogic->HasPlayerWon(Turn::Red)) {
-                MessageBox::Show("Red player has won the game!", "Game Over",
+            // Count how many red shields have reached the right edge (column 4)
+            int redShieldsAtDestination = CountShieldsAtDestination(redShieldUI, true);
+
+            // Count how many green shields have reached the bottom edge (row 4)
+            int greenShieldsAtDestination = CountShieldsAtDestination(greenShieldUI, false);
+
+            // Update progress in info text box
+            String^ progressInfo = "Progress: Red " + redShieldsAtDestination + "/3 shields at goal, Green " +
+                greenShieldsAtDestination + "/3 shields at goal.";
+
+            // Win condition: All 3 shields of a player have reached their destination
+            if (redShieldsAtDestination == 3) {
+                gameOver = true;
+                MessageBox::Show("Red player has won the game!\nAll 3 red shields reached the right edge!", "Game Over",
                     MessageBoxButtons::OK, MessageBoxIcon::Information);
+                infoTextBox->Text = "GAME OVER: Red player wins! All 3 red shields reached the right edge!";
+                DisableGameInteractions();
             }
-            else if (gameLogic->HasPlayerWon(Turn::Green)) {
-                MessageBox::Show("Green player has won the game!", "Game Over",
+            else if (greenShieldsAtDestination == 3) {
+                gameOver = true;
+                MessageBox::Show("Green player has won the game!\nAll 3 green shields reached the bottom edge!", "Game Over",
                     MessageBoxButtons::OK, MessageBoxIcon::Information);
+                infoTextBox->Text = "GAME OVER: Green player wins! All 3 green shields reached the bottom edge!";
+                DisableGameInteractions();
             }
+            else {
+                // If no winner yet, update progress info
+                infoTextBox->Text += "\n" + progressInfo;
+            }
+        }
+
+        // Disable game interactions after game is over
+        void DisableGameInteractions() {
+            // Disable red shield clicks
+            for each (KeyValuePair<PictureBox^, Point> ^ pair in redShieldUI) {
+                pair->Key->Enabled = false;
+            }
+
+            // Disable pass turn button
+            passTurnButton->Enabled = false;
+
+            // Disable recommend button
+            recommendButton->Enabled = false;
+
+            // Optional: Change form title to indicate game over
+            this->Text = L"Game Tree Demo - GAME OVER";
         }
     };
 }
