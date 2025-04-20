@@ -49,17 +49,25 @@ namespace HNK {
         // Instance of the game logic.
         GameLogic^ gameLogic;
 
+        // Timer for AI move
+        Timer^ aiTimer;
+
         // Initialize the UI components.
         void InitializeComponent(void) {
             this->components = gcnew System::ComponentModel::Container();
             this->tableLayoutPanel = gcnew TableLayoutPanel();
             this->infoTextBox = gcnew TextBox();
             this->recommendButton = gcnew Button();
+            this->aiTimer = gcnew Timer(this->components);
             this->SuspendLayout();
 
             // Form settings.
             this->ClientSize = Drawing::Size(600, 500);
             this->Text = L"Game Tree Demo";
+
+            // Setup AI timer
+            this->aiTimer->Interval = 500;
+            this->aiTimer->Tick += gcnew EventHandler(this, &MyForm::OnAITimerTick);
 
             // Create a 5×5 grid.
             this->tableLayoutPanel->ColumnCount = 5;
@@ -96,7 +104,6 @@ namespace HNK {
                             pb->Dock = DockStyle::Fill;
                             pb->SizeMode = PictureBoxSizeMode::Zoom;
                             pb->Image = Image::FromFile(GreenShieldImagePath);
-                            //pb->Click += gcnew EventHandler(this, &MyForm::OnGreenShieldClick);
                             greenShieldUI[pb] = Point(c, r);
                             cell = pb;
                         }
@@ -154,48 +161,85 @@ namespace HNK {
 
             this->ResumeLayout(false);
         }
-        void MyForm::MoveGreenShieldAI() {
-            // Example AI logic (you can make this more complex later)
-            for (int col = 0; col < 5; col++) {
-                // Check if there's a Green shield in the first row
-                Control^ control = tableLayoutPanel->GetControlFromPosition(col, 0);  // First row
-                PictureBox^ shield = dynamic_cast<PictureBox^>(control);
 
-                if (shield != nullptr && shield->BackColor == Color::Green) {
-                    // Move the Green shield down if possible
-                    for (int row = 1; row < 5; row++) {
-                        PictureBox^ target = dynamic_cast<PictureBox^>(tableLayoutPanel->GetControlFromPosition(col, row));
+        // Timer tick event for AI move
+        void OnAITimerTick(Object^ sender, EventArgs^ e) {
+            aiTimer->Stop();
+            if (gameLogic->currentTurn == Turn::Green) {
+                MakeGreenAIMove();
+            }
+        }
 
-                        if (target != nullptr && target->BackColor == Color::Transparent) {
-                            // Move the shield to the new position
-                            tableLayoutPanel->Controls->Remove(shield);
-                            tableLayoutPanel->Controls->Add(shield, col, row);
-                            infoTextBox->Text = "AI moved green shield to (" + col + ", " + row + ")";
-                            return;  // AI moves one shield per turn
+        // Make AI move for Green player
+        void MakeGreenAIMove() {
+            if (gameLogic->currentTurn != Turn::Green) return;
+
+            try {
+                // First see if there are any green shields left
+                bool foundGreen = false;
+                for each (KeyValuePair<PictureBox^, Point> ^ pair in greenShieldUI) {
+                    foundGreen = true;
+                    break;
+                }
+
+                if (!foundGreen) {
+                    infoTextBox->Text = "No Green shields left.";
+                    return;
+                }
+
+                // Try to move each Green shield
+                bool madeMoveSuccessfully = false;
+
+                for each (KeyValuePair<PictureBox^, Point> ^ pair in greenShieldUI) {
+                    PictureBox^ shield = pair->Key;
+                    Point pos = pair->Value;
+                    int newRow;
+
+                    // Try to move this shield
+                    if (gameLogic->MoveGreenShield(pos.X, pos.Y, newRow)) {
+                        // Remove shield from old position
+                        tableLayoutPanel->Controls->Remove(shield);
+
+                        // Add placeholder to old position
+                        Panel^ placeholder = gcnew Panel();
+                        placeholder->BackColor = Color::White;
+                        placeholder->Dock = DockStyle::Fill;
+                        tableLayoutPanel->Controls->Add(placeholder, pos.X, pos.Y);
+
+                        // If there was anything in the target position, remove it
+                        Control^ targetControl = tableLayoutPanel->GetControlFromPosition(pos.X, newRow);
+                        if (targetControl != nullptr) {
+                            tableLayoutPanel->Controls->Remove(targetControl);
                         }
+
+                        // Move shield to new position
+                        tableLayoutPanel->Controls->Add(shield, pos.X, newRow);
+
+                        // Update dictionary
+                        greenShieldUI[shield] = Point(pos.X, newRow);
+
+                        // Update info text
+                        infoTextBox->Text = "Green AI moved from (" + pos.X + "," + pos.Y + ") to (" + pos.X + "," + newRow.ToString() + ")";
+
+                        madeMoveSuccessfully = true;
+                        break;  // We made one move, that's enough
                     }
                 }
+
+                if (!madeMoveSuccessfully) {
+                    // No valid moves found, pass turn
+                    infoTextBox->Text = "AI could not find a valid move. Passing turn.";
+                    gameLogic->PassTurn();
+                }
+
+                // Check for win condition
+                CheckWinCondition();
+            }
+            catch (Exception^ ex) {
+                infoTextBox->Text = "AI error: " + ex->Message;
+                gameLogic->PassTurn();
             }
         }
-
-        // Event handler for green shield clicks.
-     // Event handler for when a Green shield is clicked
-        void MyForm::OnGreenShieldClick(Object^ sender, EventArgs^ e) {
-            PictureBox^ clickedShield = dynamic_cast<PictureBox^>(sender);
-
-            if (clickedShield != nullptr && gameLogic->currentTurn == Turn::Green) {
-                // Only allow the Green shield to be clicked if it's the AI's turn
-                int col = clickedShield->Location.X / clickedShield->Width;  // Calculate the column
-                int row = clickedShield->Location.Y / clickedShield->Height;  // Calculate the row
-
-                // Debug message: Show current Green shield position
-                infoTextBox->Text = "Green shield clicked at (" + col + ", " + row + ")";
-
-                // If needed, you can add logic to make the AI move the shield here.
-                // But if you're just allowing the AI to move the shield automatically, this click event is probably unnecessary.
-            }
-        }
-
 
         // Event handler for red shield clicks.
         void OnRedShieldClick(Object^ sender, EventArgs^ e) {
@@ -234,6 +278,12 @@ namespace HNK {
 
                 // Check if any player has won
                 CheckWinCondition();
+
+                // After Red's move, trigger the AI move for Green
+                if (gameLogic->currentTurn == Turn::Green) {
+                    // Start timer for AI move
+                    aiTimer->Start();
+                }
             }
         }
 
@@ -243,10 +293,10 @@ namespace HNK {
             infoTextBox->Text = "Turn passed. " +
                 ((gameLogic->currentTurn == Turn::Red) ? "Red" : "Green") +
                 "'s turn now.";
-            if (gameLogic->currentTurn == Turn::Red) {
-            }
+
+            // If it's Green's turn after passing, start the AI timer
             if (gameLogic->currentTurn == Turn::Green) {
-                MoveGreenShieldAI();  // Let the AI make the move
+                aiTimer->Start();
             }
         }
 
